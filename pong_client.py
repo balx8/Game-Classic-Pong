@@ -80,7 +80,7 @@ class PongClient:
             pygame.draw.circle(self.screen, self.WHITE,
                                (int(ball['x']), int(ball['y'])), ball['radius'])
 
-            # Draw scores
+            # draw scores
             score1 = self.font.render(str(self.game_state['paddle1']['score']),
                                       True, self.WHITE)
             score2 = self.font.render(str(self.game_state['paddle2']['score']),
