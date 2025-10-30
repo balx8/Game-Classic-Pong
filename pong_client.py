@@ -6,7 +6,7 @@ import threading
 
 class PongClient:
     def __init__(self, host='localhost', port=5555):
-        # Initialize Pygame
+        # Initialize pygame
         pygame.init()
 
         # Connect to server
