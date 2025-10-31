@@ -67,11 +67,11 @@ class PongClient:
             pw = self.game_state['paddle_width']
             ph = self.game_state['paddle_height']
 
-            # Left paddle (Player 1)
+            # left paddle (Player 1)
             pygame.draw.rect(self.screen, self.WHITE,
                              (0, self.game_state['paddle1']['y'], pw, ph))
 
-            # Right paddle (Player 2)
+            # right paddle (Player 2)
             pygame.draw.rect(self.screen, self.WHITE,
                              (self.width - pw, self.game_state['paddle2']['y'], pw, ph))
 
