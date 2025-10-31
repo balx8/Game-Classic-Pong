@@ -119,7 +119,7 @@ class PongServer:
         # Start broadcast thread
         threading.Thread(target=self.broadcast_game_state, daemon=True).start()
 
-        # Accept clients
+        # kccept clients
         player_id = 0
         while self.running and len(self.clients) < 2:
             conn, addr = self.server.accept()
@@ -130,7 +130,7 @@ class PongServer:
 
         print("Waiting for players...")
 
-        # Keep server running
+        # keep server running
         try:
             while self.running:
                 time.sleep(1)
