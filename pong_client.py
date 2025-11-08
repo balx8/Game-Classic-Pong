@@ -6,7 +6,7 @@ import threading
 
 class PongClient:
     def __init__(self, host='localhost', port=5555):
-        # Initialize Pygame
+        # Initialize pygame
         pygame.init()
 
         # Connect to server
@@ -67,11 +67,11 @@ class PongClient:
             pw = self.game_state['paddle_width']
             ph = self.game_state['paddle_height']
 
-            # Left paddle (Player 1)
+            # left paddle (Player 1)
             pygame.draw.rect(self.screen, self.WHITE,
                              (0, self.game_state['paddle1']['y'], pw, ph))
 
-            # Right paddle (Player 2)
+            # right paddle (Player 2)
             pygame.draw.rect(self.screen, self.WHITE,
                              (self.width - pw, self.game_state['paddle2']['y'], pw, ph))
 
@@ -80,7 +80,7 @@ class PongClient:
             pygame.draw.circle(self.screen, self.WHITE,
                                (int(ball['x']), int(ball['y'])), ball['radius'])
 
-            # Draw scores
+            # draw scores
             score1 = self.font.render(str(self.game_state['paddle1']['score']),
                                       True, self.WHITE)
             score2 = self.font.render(str(self.game_state['paddle2']['score']),
