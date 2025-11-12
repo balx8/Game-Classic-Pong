@@ -87,3 +87,4 @@ desktop.ini
 .env
 .env.*
 secrets.json
+/.vs
