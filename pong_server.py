@@ -36,7 +36,7 @@ class PongServer:
                 if not data:
                     break
 
-                # Receive paddle position from client
+                # receive paddle position from client
                 paddle_y = pickle.loads(data)
                 if player_id == 0:
                     self.game_state['paddle1']['y'] = paddle_y
@@ -55,7 +55,7 @@ class PongServer:
             if len(self.clients) == 2 and self.game_started:
                 ball = self.game_state['ball']
 
-                # Update ball position
+                # update ball position
                 ball['x'] += ball['dx']
                 ball['y'] += ball['dy']
 
@@ -119,7 +119,7 @@ class PongServer:
         # Start broadcast thread
         threading.Thread(target=self.broadcast_game_state, daemon=True).start()
 
-        # Accept clients
+        # kccept clients
         player_id = 0
         while self.running and len(self.clients) < 2:
             conn, addr = self.server.accept()
@@ -130,7 +130,7 @@ class PongServer:
 
         print("Waiting for players...")
 
-        # Keep server running
+        # keep server running
         try:
             while self.running:
                 time.sleep(1)
