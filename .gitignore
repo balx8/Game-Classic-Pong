@@ -1,89 +1,36 @@
-# Byte-compiled / optimized / DLL files
+# Byte-compiled / cache files
 __pycache__/
 *.py[cod]
 *$py.class
 
-# C extensions
-*.so
+# Virtual environment
+venv/
+env/
+ENV/
+.venv/
+.env/
 
-# Distribution / packaging
-.Python
+# IDE / Editor files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs / temp files
+*.log
+*.tmp
+
+# Python packaging
 build/
-develop-eggs/
 dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
 *.egg-info/
-.installed.cfg
 *.egg
 MANIFEST
 
-# Virtual environments
-venv/
-ENV/
-env/
-.env/
-.venv/
-venv.bak/
-venv_windows/
-
-# PyInstaller
-*.manifest
-*.spec
-
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
-
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.nox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*,cover
-.pytest_cache/
-
-# Translations
-*.mo
-*.pot
-
-# Django stuff:
-*.log
-*.pot
-local_settings.py
-db.sqlite3
-
-# Flask stuff:
-instance/
-.webassets-cache
-
-# Sphinx documentation
-docs/_build/
-
-# IDEs
-.idea/
-.vscode/
-*.swp
-*~
-
-# macOS
-.DS_Store
-
-# Windows
-Thumbs.db
-desktop.ini
-
-# Env and secrets
-.env
-.env.*
-secrets.json
+# Custom data files
+users.json
+config.json
