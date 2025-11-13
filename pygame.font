@@ -1,0 +1,110 @@
+import pygame
+import sys
+pygame.init()
+
+# --- Cấu hình màn hình ---
+WIDTH, HEIGHT = 800, 600
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Pong with Score")
+clock = pygame.time.Clock()
+
+# --- Màu sắc ---
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+
+# --- Paddle & Ball ---
+paddle_width, paddle_height = 10, 100
+paddle_speed = 7
+
+paddle1 = pygame.Rect(20, HEIGHT//2 - paddle_height//2, paddle_width, paddle_height)
+paddle2 = pygame.Rect(WIDTH - 30, HEIGHT//2 - paddle_height//2, paddle_width, paddle_height)
+
+ball = pygame.Rect(WIDTH//2 - 10, HEIGHT//2 - 10, 20, 20)
+ball_speed_x = 5
+ball_speed_y = 5
+
+# --- Điểm số ---
+score1 = 0
+score2 = 0
+
+# --- Font hiển thị điểm ---
+font = pygame.font.Font(None, 74)
+small_font = pygame.font.Font(None, 36)
+
+# --- Hàm reset bóng ---
+def reset_ball(direction=1):
+    global ball_speed_x, ball_speed_y
+    ball.center = (WIDTH//2, HEIGHT//2)
+    ball_speed_x = 5 * direction
+    ball_speed_y = 5
+
+# --- Game loop ---
+running = True
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+    # --- Điều khiển paddle ---
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_w] and paddle1.top > 0:
+        paddle1.y -= paddle_speed
+    if keys[pygame.K_s] and paddle1.bottom < HEIGHT:
+        paddle1.y += paddle_speed
+    if keys[pygame.K_UP] and paddle2.top > 0:
+        paddle2.y -= paddle_speed
+    if keys[pygame.K_DOWN] and paddle2.bottom < HEIGHT:
+        paddle2.y += paddle_speed
+
+    # --- Cập nhật bóng ---
+    ball.x += ball_speed_x
+    ball.y += ball_speed_y
+
+    # Va chạm biên trên/dưới
+    if ball.top <= 0 or ball.bottom >= HEIGHT:
+        ball_speed_y *= -1
+
+    # Va chạm paddle
+    if ball.colliderect(paddle1):
+        ball_speed_x = abs(ball_speed_x)
+    if ball.colliderect(paddle2):
+        ball_speed_x = -abs(ball_speed_x)
+
+    # --- Kiểm tra bóng ra khỏi biên ---
+    if ball.left <= 0:
+        score2 += 1
+        reset_ball(direction=-1)  # Giao bóng cho Player 1
+    if ball.right >= WIDTH:
+        score1 += 1
+        reset_ball(direction=1)   # Giao bóng cho Player 2
+
+    # --- Vẽ mọi thứ ---
+    screen.fill(BLACK)
+
+    # Đường giữa
+    for i in range(0, HEIGHT, 20):
+        pygame.draw.rect(screen, WHITE, (WIDTH//2 - 2, i, 4, 10))
+
+    # Paddle & Ball
+    pygame.draw.rect(screen, WHITE, paddle1)
+    pygame.draw.rect(screen, WHITE, paddle2)
+    pygame.draw.ellipse(screen, WHITE, ball)
+
+    # Hiển thị điểm
+    score_text1 = font.render(str(score1), True, WHITE)
+    score_text2 = font.render(str(score2), True, WHITE)
+    screen.blit(score_text1, (WIDTH//4, 20))
+    screen.blit(score_text2, (3*WIDTH//4, 20))
+
+    # Nhãn người chơi
+    label1 = small_font.render("Player 1", True, WHITE)
+    label2 = small_font.render("Player 2", True, WHITE)
+    screen.blit(label1, (WIDTH//4 - 60, 90))
+    screen.blit(label2, (3*WIDTH//4 - 60, 90))
+
+    # Cập nhật màn hình
+    pygame.display.flip()
+    clock.tick(60)
+
+pygame.quit()
+sys.exit()
