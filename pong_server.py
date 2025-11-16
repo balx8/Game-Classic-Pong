@@ -5,29 +5,32 @@ import time
 
 
 class PongServer:
-    def __init__(self, host='localhost', port=5555):
+    def __init__(self, host="localhost", port=5555):
+        # Tạo socket TCP/IP
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server.bind((host, port))
         self.server.listen(2)
         print(f"Server started on {host}:{port}")
 
-        # Game state
+        # Trạng thái game ban đầu
         self.game_state = {
-            'ball': {'x': 400, 'y': 300, 'dx': 3, 'dy': 3, 'radius': 10},
-            'paddle1': {'y': 250, 'score': 0},
-            'paddle2': {'y': 250, 'score': 0},
-            'width': 800,
-            'height': 600,
-            'paddle_width': 10,
-            'paddle_height': 100
+            "ball": {"x": 400, "y": 300, "dx": 2, "dy": 2, "radius": 10},  # chậm hơn
+            "paddle1": {"y": 250, "score": 0},
+            "paddle2": {"y": 250, "score": 0},
+            "width": 800,
+            "height": 600,
+            "paddle_width": 10,
+            "paddle_height": 100,
         }
 
-        self.clients = []
+        self.clients = []          # danh sách socket client
         self.running = True
         self.game_started = False
 
-    def handle_client(self, conn, player_id):
+    # ---------------- Xử lý từng client ----------------
+    def handle_client(self, conn, player_id: int):
         print(f"Player {player_id} connected")
+        # gửi player_id cho client biết mình là player 0 hay 1
         conn.send(pickle.dumps(player_id))
 
         while self.running:
@@ -36,101 +39,134 @@ class PongServer:
                 if not data:
                     break
 
-                # receive paddle position from client
+                # nhận vị trí paddle từ client
                 paddle_y = pickle.loads(data)
                 if player_id == 0:
-                    self.game_state['paddle1']['y'] = paddle_y
+                    self.game_state["paddle1"]["y"] = paddle_y
                 else:
-                    self.game_state['paddle2']['y'] = paddle_y
+                    self.game_state["paddle2"]["y"] = paddle_y
 
-            except:
+            except Exception as e:
+                print(f"Error with player {player_id}: {e}")
                 break
 
-        conn.close()
-        self.clients.remove(conn)
+        # client out
+        try:
+            conn.close()
+        except Exception:
+            pass
+
+        if conn in self.clients:
+            self.clients.remove(conn)
+
         print(f"Player {player_id} disconnected")
 
+    # ---------------- Cập nhật logic game ----------------
     def update_game(self):
+        """Vòng lặp cập nhật vị trí bóng, xử lý va chạm, tính điểm."""
         while self.running:
             if len(self.clients) == 2 and self.game_started:
-                ball = self.game_state['ball']
+                ball = self.game_state["ball"]
 
-                # update ball position
-                ball['x'] += ball['dx']
-                ball['y'] += ball['dy']
+                # cập nhật vị trí bóng
+                ball["x"] += ball["dx"]
+                ball["y"] += ball["dy"]
 
-                # Ball collision with top/bottom
-                if ball['y'] <= ball['radius'] or ball['y'] >= self.game_state['height'] - ball['radius']:
-                    ball['dy'] *= -1
+                # Va chạm tường trên/dưới
+                if (
+                    ball["y"] <= ball["radius"]
+                    or ball["y"] >= self.game_state["height"] - ball["radius"]
+                ):
+                    ball["dy"] *= -1
 
-                # Ball collision with paddles
-                p1 = self.game_state['paddle1']
-                p2 = self.game_state['paddle2']
-                pw = self.game_state['paddle_width']
-                ph = self.game_state['paddle_height']
+                # Va chạm với paddle
+                p1 = self.game_state["paddle1"]
+                p2 = self.game_state["paddle2"]
+                pw = self.game_state["paddle_width"]
+                ph = self.game_state["paddle_height"]
 
-                # Left paddle collision
-                if (ball['x'] - ball['radius'] <= pw and
-                        p1['y'] <= ball['y'] <= p1['y'] + ph):
-                    ball['dx'] = abs(ball['dx'])
+                # Paddle trái
+                if (
+                    ball["x"] - ball["radius"] <= pw
+                    and p1["y"] <= ball["y"] <= p1["y"] + ph
+                ):
+                    ball["dx"] = abs(ball["dx"])
 
-                # Right paddle collision
-                if (ball['x'] + ball['radius'] >= self.game_state['width'] - pw and
-                        p2['y'] <= ball['y'] <= p2['y'] + ph):
-                    ball['dx'] = -abs(ball['dx'])
+                # Paddle phải
+                if (
+                    ball["x"] + ball["radius"] >= self.game_state["width"] - pw
+                    and p2["y"] <= ball["y"] <= p2["y"] + ph
+                ):
+                    ball["dx"] = -abs(ball["dx"])
 
-                # Scoring
-                if ball['x'] <= 0:
-                    p2['score'] += 1
+                # Ghi điểm
+                if ball["x"] <= 0:
+                    p2["score"] += 1
                     self.reset_ball()
-                elif ball['x'] >= self.game_state['width']:
-                    p1['score'] += 1
+                elif ball["x"] >= self.game_state["width"]:
+                    p1["score"] += 1
                     self.reset_ball()
 
-            time.sleep(0.016)  # ~60 FPS
+            time.sleep(0.033)  # ~30 FPS, đỡ giật hơn
 
     def reset_ball(self):
-        ball = self.game_state['ball']
-        ball['x'] = 400
-        ball['y'] = 300
-        ball['dx'] = 3 if ball['dx'] > 0 else -3
-        ball['dy'] = 3
+        """Đưa bóng về giữa sân sau khi có điểm."""
+        ball = self.game_state["ball"]
+        ball["x"] = 400
+        ball["y"] = 300
+        # Giữ nguyên hướng ngang hiện tại (dương/âm), nhưng tốc độ chậm hơn
+        ball["dx"] = 2 if ball["dx"] > 0 else -2
+        ball["dy"] = 2
+
+    # ---------------- Gửi trạng thái game cho client ----------------
+    def send_state_to_client(self, client):
+        """Gửi game_state cho 1 client với header 4 byte độ dài."""
+        try:
+            payload = pickle.dumps(self.game_state, protocol=pickle.HIGHEST_PROTOCOL)
+            header = len(payload).to_bytes(4, "big")  # 4 byte big-endian
+            client.sendall(header + payload)
+        except Exception as e:
+            print(f"Loi khi gui data cho client: {e}")
+            if client in self.clients:
+                self.clients.remove(client)
 
     def broadcast_game_state(self):
+        """Broadcast game_state cho tất cả client ~30 FPS."""
         while self.running:
             if len(self.clients) == 2:
                 if not self.game_started:
                     self.game_started = True
                     print("Game started!")
 
-                data = pickle.dumps(self.game_state)
                 for client in self.clients[:]:
-                    try:
-                        client.send(data)
-                    except:
-                        self.clients.remove(client)
+                    self.send_state_to_client(client)
 
-            time.sleep(0.016)  # ~60 FPS
+            time.sleep(0.033)  # ~30 FPS
 
+    # ---------------- Hàm start server chính ----------------
     def start(self):
-        # Start game update thread
+        # Thread cập nhật game
         threading.Thread(target=self.update_game, daemon=True).start()
 
-        # Start broadcast thread
+        # Thread broadcast trạng thái game
         threading.Thread(target=self.broadcast_game_state, daemon=True).start()
-
-        # kccept clients
-        player_id = 0
-        while self.running and len(self.clients) < 2:
-            conn, addr = self.server.accept()
-            self.clients.append(conn)
-            threading.Thread(target=self.handle_client, args=(
-                conn, player_id), daemon=True).start()
-            player_id += 1
 
         print("Waiting for players...")
 
-        # keep server running
+        # Chấp nhận tối đa 2 client
+        player_id = 0
+        while self.running and len(self.clients) < 2:
+            conn, addr = self.server.accept()
+            print(f"New connection from {addr}")
+            self.clients.append(conn)
+            threading.Thread(
+                target=self.handle_client,
+                args=(conn, player_id),
+                daemon=True,
+            ).start()
+            player_id += 1
+
+        # Giữ server chạy cho tới khi Ctrl+C
         try:
             while self.running:
                 time.sleep(1)
