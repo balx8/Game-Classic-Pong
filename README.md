@@ -1,246 +1,246 @@
-# 🎮 Game Classic Pong (Python + Pygame)
+# Game Classic Pong – Lập Trình Mạng
 
-Dự án xây dựng lại game **Pong cổ điển** bằng Python và thư viện **Pygame**.  
-Người chơi điều khiển 2 thanh chắn (paddle) để đánh bóng qua lại, ai để bóng lọt qua phía mình thì đối phương được điểm.
+Đồ án môn **Lập Trình Mạng**: Xây dựng game Pong cổ điển bằng **Python + Pygame**, kết hợp:
 
----
-
-## 📌 Mục tiêu
-
-- Ôn luyện lập trình Python và Pygame.
-- Thực hành lập trình game 2D đơn giản (vòng lặp game, xử lý sự kiện, va chạm…).
-- Làm việc nhóm với Git/GitHub (branch, pull request, review, merge, issues…).
-- Xây dựng bản demo hoàn chỉnh có tài liệu và hình ảnh minh hoạ.
+- Chế độ **chơi local (offline)** với AI, menu chính, chọn độ khó, âm thanh.
+- Chế độ **chơi mạng (client–server)** với 2 người chơi điều khiển từ 2 client khác nhau, có âm thanh và luật thắng.
 
 ---
 
-## ✨ Tính năng chính
+## 1. Công nghệ sử dụng
 
-- Hai người chơi điều khiển paddle ở hai bên màn hình.
-- Bóng di chuyển liên tục, bật lại khi chạm paddle hoặc cạnh trên/dưới.
-- Tính điểm cho từng người chơi khi bóng lọt qua paddle đối phương.
-- Có thể chạy:
-  - **Chế độ offline (local)** trên 1 máy.
-  - (Tuỳ chọn) **Chế độ chơi mạng (client–server)** nếu bật phần này trong code.
+- **Ngôn ngữ:** Python 3.x (đã test với Python 3.11)
+- **Thư viện:**
+  - `pygame` – hiển thị đồ họa, xử lý input, âm thanh.
+  - `socket` – lập trình mạng TCP (server–client).
+  - `threading` – xử lý đa luồng (server phục vụ nhiều client, client vừa nhận state vừa render).
 
----
-
-## 🧰 Công nghệ sử dụng
-
-- **Ngôn ngữ:** Python 3.x  
-- **Thư viện:**  
-  - `pygame` – hiển thị đồ hoạ, xử lý input, vòng lặp game  
-  - `socket` (hoặc tương tự) – phục vụ chế độ chơi qua mạng (server–client, nếu sử dụng)  
-
----
-
-## 🖥️ Yêu cầu hệ thống
-
-- Python 3.x  
-- Đã cài `pip`  
-- Hệ điều hành: Windows / macOS / Linux (cài được Pygame là chạy được).
-
----
-
-## 🚀 Cài đặt
+Cài đặt thư viện:
 
 ```bash
-# Clone dự án
-git clone https://github.com/balx8/Game-Classic-Pong.git
-cd Game-Classic-Pong
-
-# (Tuỳ chọn) Tạo môi trường ảo
-python -m venv venv
-# Windows
-venv\Scripts\activate
-# macOS / Linux
-source venv/bin/activate
-
-# Cài đặt thư viện
 pip install -r requirements.txt
 
-▶️ Hướng dẫn chạy demo
-1. Chạy demo offline (local)
+2.Cấu trúc thư mục
+Game-Classic-Pong/
+├─ main.py             # Chế độ chơi local (menu, AI, độ khó, âm thanh)
+├─ ball.py             # Lớp Ball: quản lý bóng
+├─ move_paddle.py      # Lớp Paddle + AI paddle
+├─ pong_server.py      # Server TCP cho chế độ chơi mạng
+├─ pong_client.py      # Client Pygame kết nối server, hiển thị game
+├─ sounds/
+│   ├─ hit.wav         # Âm thanh bóng chạm paddle
+│   └─ score.wav       # Âm thanh ghi điểm
+├─ README.md           # Tài liệu mô tả (file này)
+└─ requirements.txt
+
+3. Chế độ chơi local – main.py
+3.1. Tính năng
+
+Menu chính:
+
+ENTER – Bắt đầu chơi.
+
+S – Vào màn Settings (chọn độ khó).
+
+Q – Thoát game.
+
+Settings (cài đặt độ khó):
+
+1 – Easy: bóng chậm, AI yếu.
+
+2 – Medium: cân bằng.
+
+3 – Hard: bóng nhanh, AI phản xạ tốt.
+
+ESC – Quay lại menu.
+
+Trong game (local):
+
+Một người chơi vs AI bot (paddle bên kia).
+
+Bóng di chuyển, va chạm tường, va chạm paddle, tính điểm.
+
+Âm thanh:
+
+hit.wav – bóng chạm paddle.
+
+score.wav – khi một bên ghi điểm.
+
+Giao diện đơn giản, có đường kẻ giữa, màu nền tối, paddle trắng.
+
+Lưu ý: Bản local không có giới hạn điểm, chơi đến khi người chơi nhấn ESC để quay về menu hoặc tắt cửa sổ.
+
+3.2. Điều khiển (local)
+
+Paddle người chơi:
+
+W / S hoặc ↑ / ↓
+
+Phím khác:
+
+ESC – Tạm dừng và quay về menu chính (khi đang chơi).
+
+Alt + F4 / nút close (X) – Thoát game.
+
+3.3. Cách chạy chế độ local
+
+Tại thư mục project (nơi có main.py):
+
 python main.py
 
+4. Chế độ chơi mạng – pong_server.py & pong_client.py
 
-Sau khi chạy, cửa sổ game Pygame sẽ hiện lên.
+Ở chế độ này, game chạy theo mô hình:
 
-Điều khiển (ví dụ – chỉnh lại nếu code khác):
+Server:
 
-Người chơi 1 (trái):
+Quản lý trạng thái game chung: vị trí bóng, paddle, điểm số.
 
-W – đi lên
+Nhận vị trí paddle từ 2 client.
 
-S – đi xuống
+Cập nhật logic, xử lý va chạm, tính điểm.
 
-Người chơi 2 (phải):
+Gửi trạng thái game (game_state) về cho tất cả client ~30 FPS.
 
-↑ – đi lên
+Mỗi client:
 
-↓ – đi xuống
+Kết nối tới server qua TCP.
 
-2. Chạy demo chế độ chơi qua mạng (client–server)
+Gửi vị trí paddle của mình lên server.
 
-Chỉ dùng nếu đã cấu hình chế độ mạng trong code.
+Nhận game_state từ server và vẽ lên màn hình.
 
-Bước 1 – Chạy server (máy chủ)
+Phát âm thanh:
+
+Bóng chạm paddle → hit.wav.
+
+Một bên ghi điểm → score.wav.
+
+Áp dụng luật thắng: ai đạt 5 điểm trước thì thắng.
+
+4.1. Luật chơi (network)
+
+Mỗi client sẽ là một Player:
+
+Player 1 → paddle bên trái.
+
+Player 2 → paddle bên phải.
+
+Server cập nhật bóng, paddle, điểm giống bản local.
+
+Khi một bên đạt 5 điểm:
+
+Cả 2 client sẽ hiển thị:
+
+YOU WIN! cho bên thắng.
+
+YOU LOSE! cho bên thua.
+
+Game dừng, người chơi nhấn ESC để thoát client.
+
+Muốn chơi ván mới → mở lại client.
+
+4.2. Điều khiển (client)
+
+Paddle:
+
+↑ / ↓ – di chuyển paddle của client đó.
+
+Phím khác:
+
+ESC – Thoát game (nhất là sau khi ván đấu kết thúc).
+
+Đóng cửa sổ – thoát client.
+
+4.3. Cách chạy server & 2 client (trên cùng 1 máy)
+
+Chạy server:
 
 python pong_server.py
-# hoặc:
-python server.py   # nếu nhóm dùng file này
 
 
-Bước 2 – Chạy client (máy người chơi)
+Console sẽ hiện:
 
-Trên từng máy client:
+Server started on localhost:5555
+
+Waiting for players...
+
+Chạy client 1 (Player 1 – bên trái):
+
+Mở terminal thứ 2:
 
 python pong_client.py
 
 
-Các client kết nối tới địa chỉ IP/port của server (được cấu hình trong code).
+Cửa sổ sẽ báo Connected as Player 1.
 
-Sau khi kết nối thành công, mỗi client điều khiển một paddle.
-📁 Cấu trúc thư mục (tham khảo)
-Game-Classic-Pong/
-├── main.py           # File chạy game offline / demo chính
-├── ball.py           # Định nghĩa lớp Ball – logic di chuyển & va chạm của bóng
-├── move_paddle.py    # Xử lý di chuyển paddle (input người dùng)
-├── pong_client.py    # Logic client khi chơi qua mạng
-├── pong_server.py    # Logic server cho chế độ chơi mạng
-├── server.py         # Script khởi động server (nếu dùng)
-├── requirements.txt  # Danh sách thư viện cần cài
-└── README.md         # Tài liệu dự án (file này)
+Chạy client 2 (Player 2 – bên phải):
 
-🎮 Cách chơi
+Mở terminal thứ 3:
 
-Chạy game theo hướng dẫn ở phần Hướng dẫn chạy demo.
+python pong_client.py
 
-Mỗi người chơi dùng bộ phím của mình để di chuyển paddle lên/xuống.
 
-Bóng sẽ:
+Cửa sổ sẽ báo Connected as Player 2.
 
-Bật lại khi chạm paddle.
+Sắp xếp cửa sổ để dễ chơi (Windows):
 
-Bật lại khi chạm cạnh trên/dưới màn hình.
+Chọn cửa sổ Player 1 → bấm Windows + ←.
 
-Nếu bóng đi qua biên trái/phải (lọt qua paddle) → người còn lại ghi điểm.
+Chọn cửa sổ Player 2 → bấm Windows + →.
 
-Có thể đặt luật:
+Giờ bạn có thể chơi Pong 2 người qua server: mỗi bên điều khiển paddle của mình, có âm thanh và luật thắng 5 điểm.
 
-Chơi tự do cho tới khi thoát game.
+4.4. Chạy server & client trên nhiều máy khác nhau
 
-Hoặc ai đạt trước một số điểm (ví dụ 10 điểm) thì thắng.
+Ở máy chạy server:
 
-📝 Tiến độ & kết quả nhóm
-Tiến độ thực hiện (tóm tắt theo các issue trên GitHub)
+Đảm bảo firewall cho phép Python nhận kết nối TCP cổng 5555.
 
-Giai đoạn 1 – Chuẩn bị & khởi tạo dự án
+Tìm địa chỉ IP của máy (ví dụ: 192.168.1.10).
 
-Setup repository & upload code gốc.
+Ở client:
 
-Tạo cấu trúc thư mục, khởi tạo main.py.
+Trong pong_client.py, khi tạo client:
 
-Tạo .gitignore và môi trường làm việc Python.
+client = PongClient(host="192.168.1.10", port=5555)
 
-Chuẩn bị tài nguyên game (hình ảnh, font, âm thanh… nếu có).
 
-Giai đoạn 2 – Xây dựng tính năng chính
+Hoặc sửa sẵn host="192.168.1.10" trong file.
 
-Xây dựng class Ball.
+5. Yêu cầu hệ thống
 
-Xây dựng class Paddle.
+Python 3.10+ (khuyến nghị 3.11).
 
-Xử lý va chạm giữa bóng – paddle – biên.
+Đã cài Pygame và các thư viện trong requirements.txt.
 
-Thêm điểm số và giao diện hiển thị.
+Thư mục sounds/ phải tồn tại với:
 
-Giai đoạn 3 – Hoàn thiện & tài liệu
+sounds/hit.wav
 
-Review và merge code từ các nhánh feature/....
+sounds/score.wav
 
-Test tổng thể để đảm bảo game chạy ổn định.
+6. Cách chạy nhanh (tóm tắt)
+6.1. Local game (vs AI):
+python main.py
 
-Viết README ban đầu, cập nhật README cuối cùng, bổ sung hướng dẫn và hình minh hoạ.
+6.2. Online game (2 người qua server):
 
-Phân công công việc
+Terminal 1:
 
-Phân chia theo vai trò chính, các thành viên có hỗ trợ lẫn nhau trong quá trình làm việc.
+python pong_server.py
 
-balx8 – Nhóm trưởng
 
-Setup repository, tạo cấu trúc thư mục.
+Terminal 2:
 
-Khởi tạo main.py, tổ chức vòng lặp game.
+python pong_client.py
 
-Quản lý issues, review & merge pull request.
 
-Viết và cập nhật README, tổng hợp báo cáo nhóm.
+Terminal 3:
 
-Cao Sỹ Tuấn Anh (anh16121978-sys)
+python pong_client.py
 
-Xây dựng class Ball, xử lý di chuyển bóng.
-
-Tham gia xử lý va chạm bóng với paddle/biên.
-
-Hỗ trợ test và tối ưu logic game.
-
-Bảo Quân (BaoQuanLee)
-
-Xây dựng class Paddle, điều khiển di chuyển paddle.
-
-Thêm phần giao diện và hiển thị điểm số.
-
-Hỗ trợ chỉnh sửa UI/UX trong game.
-
-Loivo2005
-
-Chuẩn bị và quản lý tài nguyên game (hình ảnh, asset… nếu có).
-
-Thiết lập môi trường, .gitignore, hỗ trợ các bạn run project.
-
-Tham gia test chức năng tổng thể.
-
-ngocongduc2
-
-Hỗ trợ triển khai/khảo sát chế độ chơi mạng (client–server) (nếu enable).
-
-Tham gia kiểm thử, phát hiện và sửa bug.
-
-Góp ý cải tiến hiệu năng và trải nghiệm chơi.
-
-Kết quả đạt được
-
-Hoàn thành game Pong chạy ổn định trên máy local.
-
-Quy trình làm việc nhóm trên GitHub rõ ràng: issues, branches, pull request, review, merge.
-
-Code được tách module (ball, paddle, xử lý input, server/client…) giúp dễ bảo trì và mở rộng.
-
-Có tài liệu README hướng dẫn đầy đủ cách cài đặt, chạy demo và mô tả quá trình làm việc nhóm.
-
-🖼️ Hình ảnh minh hoạ
-
-<img width="1002" height="791" alt="image" src="https://github.com/user-attachments/assets/8da5c5e1-939c-4349-b356-ada180f19f55" />
-
-
-<img width="997" height="796" alt="image" src="https://github.com/user-attachments/assets/3cf8b4fb-9b53-4906-ae95-6f24f6c21a9e" />
-
-
-🔮 Hướng phát triển thêm
-
-Thêm menu chính (Start, Settings, Quit).
-
-Thêm AI bot để người chơi solo với máy.
-
-Thêm âm thanh khi bóng chạm paddle/biên, khi ghi điểm.
-
-Thêm tuỳ chọn độ khó (tăng tốc bóng, chỉnh kích thước paddle…).
-
-Cải thiện giao diện: màu sắc, font chữ, hiệu ứng chuyển cảnh.
-
-👥 Thành viên nhóm
-
+7. Thành viên nhóm 
 balx8 – Nhóm trưởng
 
 Cao Sỹ Tuấn Anh (anh16121978-sys) – Thành viên
